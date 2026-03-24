@@ -85,7 +85,17 @@ function preload() {
     graphics.fillStyle(0x8b4513, 1);
     graphics.fillRect(0, 24, 32, 8);
     graphics.generateTexture('platform', 32, 32);
+
+    // Exit - Brown door
+    graphics.clear();
+    graphics.fillStyle(0x8b4513, 1);
+    graphics.fillRect(4, 0, 24, 32);
+    graphics.fillStyle(0xffff00, 1);
+    graphics.fillCircle(22, 16, 2);
+    graphics.generateTexture('exit', 32, 32);
 }
+
+let exit;
 
 function create() {
     const data = this.cache.json.get('level1');
@@ -146,6 +156,12 @@ function create() {
     this.physics.add.collider(eggs, platforms);
     this.physics.add.collider(mushrooms, platforms);
 
+    // Exit
+    if (data.exit) {
+        exit = this.physics.add.staticSprite(data.exit.x, data.exit.y, 'exit');
+        this.physics.add.overlap(player, exit, reachExit, null, this);
+    }
+
     // Overlaps and Collisions
     this.physics.add.overlap(player, carrots, collectCarrot, null, this);
     this.physics.add.overlap(player, eggs, collectEgg, null, this);
@@ -182,6 +198,21 @@ function hitMushroom(player, mushroom) {
     gameOver = true;
 
     this.add.text(400, 300, 'SPELET SLUT', { fontSize: '64px', fill: '#f00' }).setOrigin(0.5);
+    this.add.text(400, 380, 'Klicka för att starta om', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5);
+
+    this.input.once('pointerdown', () => {
+        score = 0;
+        gameOver = false;
+        this.scene.restart();
+    });
+}
+
+function reachExit(player, exit) {
+    this.physics.pause();
+    player.setTint(0x00ff00);
+    gameOver = true;
+
+    this.add.text(400, 300, 'NIVÅ KLARAD!', { fontSize: '64px', fill: '#0f0' }).setOrigin(0.5);
     this.add.text(400, 380, 'Klicka för att starta om', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5);
 
     this.input.once('pointerdown', () => {
