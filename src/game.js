@@ -34,6 +34,8 @@ let scoreText;
 let gameOver = false;
 
 function preload() {
+    this.load.json('level1', 'levels/level1.json');
+
     let graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
     // Rabbit (Kaninis) - White circle with ears
@@ -86,24 +88,26 @@ function preload() {
 }
 
 function create() {
-    //  The platforms group contains the ground and the 2 ledges we can jump on
+    const data = this.cache.json.get('level1');
+
+    // Set world bounds
+    this.physics.world.setBounds(0, 0, data.width, data.height);
+    this.cameras.main.setBounds(0, 0, data.width, data.height);
+
+    //  The platforms group
     platforms = this.physics.add.staticGroup();
 
-    //  Here we create the ground.
-    //  Scale it to fit the width of the game (the original sprite is 32x32 in size)
-    platforms.create(400, 580, 'platform').setScale(25, 1.5).refreshBody();
-
-    //  Now let's create some ledges
-    platforms.create(600, 400, 'platform').setScale(6, 1).refreshBody();
-    platforms.create(200, 350, 'platform').setScale(6, 1).refreshBody();
-    platforms.create(500, 200, 'platform').setScale(6, 1).refreshBody();
+    data.platforms.forEach(p => {
+        platforms.create(p.x, p.y, 'platform').setScale(p.scaleX, p.scaleY).refreshBody();
+    });
 
     // The player and its settings
     player = this.physics.add.sprite(100, 450, 'rabbit');
-
-    //  Player physics properties. Give the little guy a slight bounce.
     player.setBounce(0.1);
     player.setCollideWorldBounds(true);
+
+    // Camera follows player
+    this.cameras.main.startFollow(player, true, 0.05, 0.05);
 
     //  Input Events
     cursors = this.input.keyboard.createCursorKeys();
@@ -112,22 +116,20 @@ function create() {
     this.physics.add.collider(player, platforms);
 
     // Carrots to collect
-    carrots = this.physics.add.group({
-        key: 'carrot',
-        repeat: 9,
-        setXY: { x: 150, y: 0, stepX: 70 }
+    carrots = this.physics.add.group();
+    data.carrots.forEach(c => {
+        carrots.create(c.x, c.y || 0, 'carrot');
     });
 
     carrots.children.iterate(function (child) {
-        // Give each carrot a slightly different bounce
         child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
     });
 
-    // Easter Eggs - sparsely placed
+    // Easter Eggs
     eggs = this.physics.add.group();
-    eggs.create(600, 350, 'egg');
-    eggs.create(200, 300, 'egg');
-    eggs.create(500, 150, 'egg');
+    data.eggs.forEach(e => {
+        eggs.create(e.x, e.y, 'egg');
+    });
 
     eggs.children.iterate(function (child) {
         child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
@@ -135,9 +137,9 @@ function create() {
 
     // Mushrooms - Hazards
     mushrooms = this.physics.add.staticGroup();
-    mushrooms.create(450, 545, 'mushroom');
-    mushrooms.create(250, 325, 'mushroom');
-    mushrooms.create(650, 375, 'mushroom');
+    data.mushrooms.forEach(m => {
+        mushrooms.create(m.x, m.y, 'mushroom');
+    });
 
     // Physics checks
     this.physics.add.collider(carrots, platforms);
@@ -149,9 +151,11 @@ function create() {
     this.physics.add.overlap(player, eggs, collectEgg, null, this);
     this.physics.add.collider(player, mushrooms, hitMushroom, null, this);
 
-    // Score Text
+    // Score Text - Fix it to the screen
     scoreText = this.add.text(16, 16, 'Poäng: 0', { fontSize: '32px', fill: '#fff', fontStyle: 'bold' });
-    this.add.text(16, 50, 'Kaninis Påskjakt', { fontSize: '18px', fill: '#fff' }).setAlpha(0.7);
+    scoreText.setScrollFactor(0);
+    const titleText = this.add.text(16, 50, 'Kaninis Påskjakt', { fontSize: '18px', fill: '#fff' }).setAlpha(0.7);
+    titleText.setScrollFactor(0);
 }
 
 function collectCarrot(player, carrot) {
