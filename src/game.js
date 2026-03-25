@@ -10,6 +10,8 @@ class PreloadScene extends Phaser.Scene {
         this.load.image('grass-left', 'assets/grass-left.png');
         this.load.image('grass-middle', 'assets/grass-middle.png');
         this.load.image('grass-right', 'assets/grass-right.png');
+        this.load.image('carrot', 'assets/carrot.png');
+        this.load.image('egg', 'assets/egg.png');
 
         let graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
@@ -23,14 +25,6 @@ class PreloadScene extends Phaser.Scene {
         graphics.fillCircle(16, 18, 3);
         graphics.generateTexture('rabbit', 32, 32);
 
-        // Carrot - Orange triangle/cone
-        graphics.clear();
-        graphics.fillStyle(0xffa500, 1);
-        graphics.fillTriangle(4, 4, 28, 4, 16, 28);
-        graphics.fillStyle(0x00ff00, 1);
-        graphics.fillRect(14, 0, 4, 6);
-        graphics.generateTexture('carrot', 32, 32);
-
         // Mushroom - Red cap with white dots
         graphics.clear();
         graphics.fillStyle(0xdddddd, 1);
@@ -42,16 +36,6 @@ class PreloadScene extends Phaser.Scene {
         graphics.fillCircle(22, 10, 3);
         graphics.fillCircle(16, 6, 3);
         graphics.generateTexture('mushroom', 32, 32);
-
-        // Easter Egg - Colorful ellipse
-        graphics.clear();
-        graphics.fillStyle(0xee82ee, 1);
-        graphics.fillEllipse(16, 16, 24, 30);
-        graphics.fillStyle(0xffff00, 1);
-        graphics.fillRect(8, 12, 16, 4);
-        graphics.fillStyle(0x00ffff, 1);
-        graphics.fillRect(8, 20, 16, 4);
-        graphics.generateTexture('egg', 32, 32);
 
         // Platform - Green rectangle
         graphics.clear();
@@ -169,7 +153,9 @@ class GameScene extends Phaser.Scene {
         // Carrots to collect
         this.carrots = this.physics.add.group();
         data.carrots.forEach(c => {
-            this.carrots.create(c.x, c.y || 0, 'carrot');
+            const carrot = this.carrots.create(c.x, c.y || 0, 'carrot');
+            carrot.setScale(0.3);
+            carrot.refreshBody();
         });
 
         this.carrots.children.iterate(function (child) {
@@ -179,7 +165,9 @@ class GameScene extends Phaser.Scene {
         // Easter Eggs
         this.eggs = this.physics.add.group();
         data.eggs.forEach(e => {
-            this.eggs.create(e.x, e.y, 'egg');
+            const egg = this.eggs.create(e.x, e.y, 'egg');
+            egg.setScale(0.3);
+            egg.refreshBody();
         });
 
         this.eggs.children.iterate(function (child) {
