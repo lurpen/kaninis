@@ -66,16 +66,10 @@ function preload() {
     this.load.image('grass-left', 'assets/grass-left.png');
     this.load.image('grass-middle', 'assets/grass-middle.png');
     this.load.image('grass-right', 'assets/grass-right.png');
+    this.load.image('carrot', 'assets/carrot.png');
+    this.load.image('egg', 'assets/egg.png');
 
     let graphics = this.make.graphics({ x: 0, y: 0, add: false });
-
-    // Carrot
-    graphics.clear();
-    graphics.fillStyle(0xffa500, 1);
-    graphics.fillTriangle(4, 4, 28, 4, 16, 28);
-    graphics.fillStyle(0x00ff00, 1);
-    graphics.fillRect(14, 0, 4, 6);
-    graphics.generateTexture('carrot', 32, 32);
 
     // Mushroom
     graphics.clear();
@@ -88,16 +82,6 @@ function preload() {
     graphics.fillCircle(22, 10, 3);
     graphics.fillCircle(16, 6, 3);
     graphics.generateTexture('mushroom', 32, 32);
-
-    // Egg
-    graphics.clear();
-    graphics.fillStyle(0xee82ee, 1);
-    graphics.fillEllipse(16, 16, 24, 30);
-    graphics.fillStyle(0xffff00, 1);
-    graphics.fillRect(8, 12, 16, 4);
-    graphics.fillStyle(0x00ffff, 1);
-    graphics.fillRect(8, 20, 16, 4);
-    graphics.generateTexture('egg', 32, 32);
 
     // Platform
     graphics.clear();
@@ -200,8 +184,12 @@ function addObject(scene, x, y, type) {
         obj.data = { type: type, scaleX: scaleX, scaleY: scaleY };
     } else if (type === 'carrot') {
         obj = carrots.create(x, y, 'carrot').setInteractive();
+        obj.setScale(0.3);
+        if (obj.body) obj.body.updateFromGameObject();
     } else if (type === 'egg') {
         obj = eggs.create(x, y, 'egg').setInteractive();
+        obj.setScale(0.3);
+        if (obj.body) obj.body.updateFromGameObject();
     } else if (type === 'mushroom') {
         obj = mushrooms.create(x, y, 'mushroom').setInteractive();
     } else if (type === 'exit') {
@@ -251,6 +239,8 @@ function loadLevelData(scene, data) {
     if (data.carrots) {
         data.carrots.forEach(c => {
             const obj = carrots.create(c.x, c.y || 0, 'carrot').setInteractive();
+            obj.setScale(0.3);
+            if (obj.body) obj.body.updateFromGameObject();
             obj.data = { type: 'carrot' };
         });
     }
@@ -258,6 +248,8 @@ function loadLevelData(scene, data) {
     if (data.eggs) {
         data.eggs.forEach(e => {
             const obj = eggs.create(e.x, e.y, 'egg').setInteractive();
+            obj.setScale(0.3);
+            if (obj.body) obj.body.updateFromGameObject();
             obj.data = { type: 'egg' };
         });
     }
