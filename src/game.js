@@ -108,15 +108,9 @@ class GameScene extends Phaser.Scene {
         const height = 77;
         const rt = this.make.renderTexture({ width: width, height: height }, false);
 
-        rt.draw('grass-left', 0, 0);
-        rt.draw('grass-right', width - 7, 0);
-
-        if (width > 14) {
-            const middleWidth = width - 14;
-            const middle = this.add.tileSprite(0, 0, middleWidth, height, 'grass-middle').setOrigin(0, 0).setVisible(false);
-            rt.draw(middle, 7, 0);
-            middle.destroy();
-        }
+        const middle = this.add.tileSprite(0, 0, width, height, 'grass-middle').setOrigin(0, 0).setVisible(false);
+        rt.draw(middle, 0, 0);
+        middle.destroy();
 
         rt.saveTexture(key);
         rt.destroy();
@@ -154,6 +148,7 @@ class GameScene extends Phaser.Scene {
 
         // The player and its settings
         this.player = this.physics.add.sprite(100, 450, 'rabbit');
+        this.player.setOffset(0, 17);
         this.player.setBounce(0.1);
         this.player.setCollideWorldBounds(true);
 
