@@ -7,6 +7,9 @@ class PreloadScene extends Phaser.Scene {
         this.load.json('level1', 'levels/level1.json');
         this.load.image('fail', 'assets/fail.jpg');
         this.load.image('title', 'assets/title.jpg');
+        this.load.image('grass-left', 'assets/grass-left.png');
+        this.load.image('grass-middle', 'assets/grass-middle.png');
+        this.load.image('grass-right', 'assets/grass-right.png');
 
         let graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
@@ -98,6 +101,28 @@ class GameScene extends Phaser.Scene {
         super('GameScene');
     }
 
+    getPlatformTexture(width) {
+        const key = `platform_${width}`;
+        if (this.textures.exists(key)) return key;
+
+        const height = 77;
+        const rt = this.make.renderTexture({ width: width, height: height }, false);
+
+        rt.draw('grass-left', 0, 0);
+        rt.draw('grass-right', width - 7, 0);
+
+        if (width > 14) {
+            const middleWidth = width - 14;
+            const middle = this.add.tileSprite(0, 0, middleWidth, height, 'grass-middle').setOrigin(0, 0).setVisible(false);
+            rt.draw(middle, 7, 0);
+            middle.destroy();
+        }
+
+        rt.saveTexture(key);
+        rt.destroy();
+        return key;
+    }
+
     create() {
         const data = this.cache.json.get('level1');
         this.score = 0;
@@ -111,7 +136,20 @@ class GameScene extends Phaser.Scene {
         this.platforms = this.physics.add.staticGroup();
 
         data.platforms.forEach(p => {
-            this.platforms.create(p.x, p.y, 'platform').setScale(p.scaleX, p.scaleY).refreshBody();
+            const width = 32 * p.scaleX;
+            const height = 32 * p.scaleY;
+            const textureKey = this.getPlatformTexture(width);
+
+            // The visual surface is 17px from the top.
+            // Original platform top was at p.y - height/2.
+            // New grass top should be at p.y - height/2 - 17.
+            // Center of grass image (77px high) should be at (p.y - height/2 - 17) + 38.5.
+            const grassY = (p.y - height / 2 - 17) + 38.5;
+
+            const platform = this.platforms.create(p.x, grassY, textureKey);
+            platform.setSize(width, height);
+            platform.setOffset(0, 17);
+            platform.refreshBody();
         });
 
         // The player and its settings

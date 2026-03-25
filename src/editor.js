@@ -20,6 +20,28 @@ const config = {
 
 const game = new Phaser.Game(config);
 
+function getPlatformTexture(scene, width) {
+    const key = `platform_${width}`;
+    if (scene.textures.exists(key)) return key;
+
+    const height = 77;
+    const rt = scene.make.renderTexture({ width: width, height: height }, false);
+
+    rt.draw('grass-left', 0, 0);
+    rt.draw('grass-right', width - 7, 0);
+
+    if (width > 14) {
+        const middleWidth = width - 14;
+        const middle = scene.add.tileSprite(0, 0, middleWidth, height, 'grass-middle').setOrigin(0, 0).setVisible(false);
+        rt.draw(middle, 7, 0);
+        middle.destroy();
+    }
+
+    rt.saveTexture(key);
+    rt.destroy();
+    return key;
+}
+
 let currentTool = 'select';
 let selectedObject = null;
 let levelData = {
@@ -41,6 +63,10 @@ let exitObj;
 let cursors;
 
 function preload() {
+    this.load.image('grass-left', 'assets/grass-left.png');
+    this.load.image('grass-middle', 'assets/grass-middle.png');
+    this.load.image('grass-right', 'assets/grass-right.png');
+
     let graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
     // Carrot
@@ -146,7 +172,7 @@ function selectObject(obj) {
     document.getElementById('delete-btn').style.display = 'block';
     if (selectedObject.data.type === 'platform') {
         document.getElementById('platform-scale-label').style.display = 'block';
-        document.getElementById('platform-scale-x').value = selectedObject.scaleX;
+        document.getElementById('platform-scale-x').value = selectedObject.data.scaleX;
     }
 }
 
@@ -162,7 +188,16 @@ function deselectObject() {
 function addObject(scene, x, y, type) {
     let obj;
     if (type === 'platform') {
-        obj = platforms.create(x, y, 'platform').setScale(1, 1).setInteractive();
+        const scaleX = 1;
+        const scaleY = 1;
+        const width = 32 * scaleX;
+        const height = 32 * scaleY;
+        const textureKey = getPlatformTexture(scene, width);
+        const grassY = (y - height / 2 - 17) + 38.5;
+        obj = platforms.create(x, grassY, textureKey).setInteractive();
+        obj.setSize(width, height);
+        obj.setOffset(0, 17);
+        obj.data = { type: type, scaleX: scaleX, scaleY: scaleY };
     } else if (type === 'carrot') {
         obj = carrots.create(x, y, 'carrot').setInteractive();
     } else if (type === 'egg') {
@@ -202,8 +237,14 @@ function loadLevelData(scene, data) {
 
     if (data.platforms) {
         data.platforms.forEach(p => {
-            const obj = platforms.create(p.x, p.y, 'platform').setScale(p.scaleX, p.scaleY).setInteractive();
-            obj.data = { type: 'platform' };
+            const width = 32 * p.scaleX;
+            const height = 32 * p.scaleY;
+            const textureKey = getPlatformTexture(scene, width);
+            const grassY = (p.y - height / 2 - 17) + 38.5;
+            const obj = platforms.create(p.x, grassY, textureKey).setInteractive();
+            obj.setSize(width, height);
+            obj.setOffset(0, 17);
+            obj.data = { type: 'platform', scaleX: p.scaleX, scaleY: p.scaleY };
         });
     }
 
@@ -246,7 +287,9 @@ function saveLevelData() {
     };
 
     platforms.children.iterate(p => {
-        data.platforms.push({ x: p.x, y: p.y, scaleX: p.scaleX, scaleY: p.scaleY });
+        const height = 32 * p.data.scaleY;
+        const collisionY = p.y - 38.5 + 17 + height / 2;
+        data.platforms.push({ x: p.x, y: collisionY, scaleX: p.data.scaleX, scaleY: p.data.scaleY });
     });
 
     carrots.children.iterate(c => {
@@ -316,8 +359,18 @@ function setupUI(scene) {
 
     document.getElementById('platform-scale-x').addEventListener('input', (e) => {
         if (selectedObject && selectedObject.data.type === 'platform') {
-            selectedObject.setScale(parseFloat(e.target.value), 1);
-            selectedObject.body.updateFromGameObject();
+            const scaleX = parseFloat(e.target.value);
+            const scaleY = selectedObject.data.scaleY;
+            const width = 32 * scaleX;
+            const height = 32 * scaleY;
+            const textureKey = getPlatformTexture(scene, width);
+            selectedObject.setTexture(textureKey);
+            selectedObject.data.scaleX = scaleX;
+            selectedObject.setSize(width, height);
+            selectedObject.setOffset(0, 17);
+            if (selectedObject.body) {
+                selectedObject.body.updateFromGameObject();
+            }
         }
     });
 
