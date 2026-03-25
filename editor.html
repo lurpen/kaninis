@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nivåredigerare - Kaninis Påskjakt</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            overflow: auto;
+            flex-direction: column;
+            height: auto;
+            padding: 20px;
+        }
+        #ui-container {
+            background: #444;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            width: 800px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .tool-group {
+            border-right: 1px solid #666;
+            padding-right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+        button {
+            padding: 8px 12px;
+            cursor: pointer;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button.active {
+            background: #228b22;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 5px;
+        }
+        label {
+            font-size: 14px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.85.2/phaser.min.js"></script>
+</head>
+<body>
+    <h1>Nivåredigerare</h1>
+
+    <div id="ui-container">
+        <div class="tool-group">
+            <button id="tool-select" class="active">Välj/Flytta</button>
+            <button id="tool-platform">Plattform</button>
+            <button id="tool-carrot">Morot</button>
+            <button id="tool-egg">Ägg</button>
+            <button id="tool-mushroom">Svamp</button>
+            <button id="tool-exit">Utgång</button>
+        </div>
+
+        <div class="tool-group">
+            <label>Bredd: <input type="number" id="level-width" value="2400" step="100"></label>
+            <label id="platform-scale-label" style="display:none;">Skala X: <input type="number" id="platform-scale-x" value="1" step="0.5" min="0.5"></label>
+            <button id="delete-btn" style="display:none; background:#800;">Ta bort</button>
+        </div>
+
+        <div class="tool-group">
+            <button id="load-btn">Ladda Server (Level 1)</button>
+            <button id="upload-btn">Ladda Fil</button>
+            <input type="file" id="file-input" style="display:none" accept=".json">
+            <button id="save-btn">Spara (Ladda ner)</button>
+        </div>
+        <a href="index.html" style="color:#aaa; text-decoration:none; margin-left:auto;">Tillbaka till spelet</a>
+    </div>
+
+    <div id="game-container"></div>
+
+    <script src="src/editor.js"></script>
+</body>
+</html>
