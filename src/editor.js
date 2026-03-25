@@ -27,15 +27,9 @@ function getPlatformTexture(scene, width) {
     const height = 77;
     const rt = scene.make.renderTexture({ width: width, height: height }, false);
 
-    rt.draw('grass-left', 0, 0);
-    rt.draw('grass-right', width - 7, 0);
-
-    if (width > 14) {
-        const middleWidth = width - 14;
-        const middle = scene.add.tileSprite(0, 0, middleWidth, height, 'grass-middle').setOrigin(0, 0).setVisible(false);
-        rt.draw(middle, 7, 0);
-        middle.destroy();
-    }
+    const middle = scene.add.tileSprite(0, 0, width, height, 'grass-middle').setOrigin(0, 0).setVisible(false);
+    rt.draw(middle, 0, 0);
+    middle.destroy();
 
     rt.saveTexture(key);
     rt.destroy();
