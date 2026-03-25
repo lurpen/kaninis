@@ -35,6 +35,7 @@ let gameOver = false;
 
 function preload() {
     this.load.json('level1', 'levels/level1.json');
+    this.load.image('fail', 'assets/fail.jpg');
 
     let graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
@@ -197,8 +198,9 @@ function hitMushroom(player, mushroom) {
     player.setTint(0xff0000);
     gameOver = true;
 
-    this.add.text(400, 300, 'SPELET SLUT', { fontSize: '64px', fill: '#f00' }).setOrigin(0.5);
-    this.add.text(400, 380, 'Klicka för att starta om', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5);
+    this.add.image(400, 300, 'fail').setDisplaySize(800, 600).setScrollFactor(0);
+    this.add.text(400, 300, 'SPELET SLUT', { fontSize: '64px', fill: '#f00' }).setOrigin(0.5).setScrollFactor(0);
+    this.add.text(400, 380, 'Klicka för att starta om', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0);
 
     this.input.once('pointerdown', () => {
         score = 0;
@@ -212,8 +214,8 @@ function reachExit(player, exit) {
     player.setTint(0x00ff00);
     gameOver = true;
 
-    this.add.text(400, 300, 'NIVÅ KLARAD!', { fontSize: '64px', fill: '#0f0' }).setOrigin(0.5);
-    this.add.text(400, 380, 'Klicka för att starta om', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5);
+    this.add.text(400, 300, 'NIVÅ KLARAD!', { fontSize: '64px', fill: '#0f0' }).setOrigin(0.5).setScrollFactor(0);
+    this.add.text(400, 380, 'Klicka för att starta om', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0);
 
     this.input.once('pointerdown', () => {
         score = 0;
