@@ -18,11 +18,11 @@ class PreloadScene extends Phaser.Scene {
         // Rabbit (Kaninis) - White circle with ears
         graphics.clear();
         graphics.fillStyle(0xffffff, 1);
-        graphics.fillCircle(16, 16, 14); // Body
-        graphics.fillEllipse(10, 6, 8, 16); // Left ear
-        graphics.fillEllipse(22, 6, 8, 16); // Right ear
+        graphics.fillCircle(16, 18, 14); // Body (bottom at 32)
+        graphics.fillEllipse(10, 8, 8, 16); // Left ear
+        graphics.fillEllipse(22, 8, 8, 16); // Right ear
         graphics.fillStyle(0xffc0cb, 1); // Pink nose/inner ears
-        graphics.fillCircle(16, 18, 3);
+        graphics.fillCircle(16, 20, 3);
         graphics.generateTexture('rabbit', 32, 32);
 
         // Mushroom - Red cap with white dots
@@ -92,9 +92,24 @@ class GameScene extends Phaser.Scene {
         const height = 77;
         const rt = this.make.renderTexture({ width: width, height: height }, false);
 
-        const middle = this.add.tileSprite(0, 0, width, height, 'grass-middle').setOrigin(0, 0).setVisible(false);
-        rt.draw(middle, 0, 0);
-        middle.destroy();
+        // Draw left edge
+        const left = this.add.image(0, 0, 'grass-left').setOrigin(0, 0).setVisible(false);
+        rt.draw(left, 0, 0);
+
+        // Draw right edge
+        const right = this.add.image(width, 0, 'grass-right').setOrigin(1, 0).setVisible(false);
+        rt.draw(right, width, 0);
+
+        // Tile middle
+        const middleWidth = width - 14;
+        if (middleWidth > 0) {
+            const middle = this.add.tileSprite(7, 0, middleWidth, height, 'grass-middle').setOrigin(0, 0).setVisible(false);
+            rt.draw(middle, 7, 0);
+            middle.destroy();
+        }
+
+        left.destroy();
+        right.destroy();
 
         rt.saveTexture(key);
         rt.destroy();
@@ -115,24 +130,26 @@ class GameScene extends Phaser.Scene {
 
         data.platforms.forEach(p => {
             const width = 32 * p.scaleX;
-            const height = 32 * p.scaleY;
             const textureKey = this.getPlatformTexture(width);
 
-            // The visual surface is 17px from the top.
-            // Original platform top was at p.y - height/2.
-            // New grass top should be at p.y - height/2 - 17.
-            // Center of grass image (77px high) should be at (p.y - height/2 - 17) + 38.5.
-            const grassY = (p.y - height / 2 - 17) + 38.5;
+            // The grass texture is 77px high. The baseline is 17px from the top.
+            // We want the physics body to be 32px high starting at that baseline.
+            // grassY = p.y + 5.5 * p.scaleY (from previous calculation)
+            const grassY = p.y + 5.5 * p.scaleY;
 
             const platform = this.platforms.create(p.x, grassY, textureKey);
-            platform.setSize(width, height);
-            platform.setOffset(0, 17);
-            platform.refreshBody();
+            platform.setScale(1, p.scaleY);
+            platform.refreshBody(); // This sets the body size to the sprite size (77 * scaleY)
+
+            // Now adjust the hitbox to be 32px high (scaled), starting 17px (scaled) from the top
+            platform.body.setSize(width, 32 * p.scaleY);
+            platform.body.setOffset(0, 17 * p.scaleY);
         });
 
         // The player and its settings
         this.player = this.physics.add.sprite(100, 450, 'rabbit');
-        this.player.setOffset(0, 17);
+        this.player.setSize(24, 32);
+        this.player.setOffset(4, 0);
         this.player.setBounce(0.1);
         this.player.setCollideWorldBounds(true);
 
