@@ -52,6 +52,34 @@ class PreloadScene extends Phaser.Scene {
         graphics.fillStyle(0xffff00, 1);
         graphics.fillCircle(22, 16, 2);
         graphics.generateTexture('exit', 32, 32);
+
+        // Touch Control Buttons
+        // Base button circle
+        const drawButtonBase = (g) => {
+            g.clear();
+            g.fillStyle(0x000000, 0.5);
+            g.fillCircle(32, 32, 30);
+            g.lineStyle(2, 0xffffff, 0.8);
+            g.strokeCircle(32, 32, 30);
+        };
+
+        // Left button
+        drawButtonBase(graphics);
+        graphics.fillStyle(0xffffff, 0.8);
+        graphics.fillTriangle(20, 32, 44, 16, 44, 48);
+        graphics.generateTexture('btn-left', 64, 64);
+
+        // Right button
+        drawButtonBase(graphics);
+        graphics.fillStyle(0xffffff, 0.8);
+        graphics.fillTriangle(44, 32, 20, 16, 20, 48);
+        graphics.generateTexture('btn-right', 64, 64);
+
+        // Jump button
+        drawButtonBase(graphics);
+        graphics.fillStyle(0xffffff, 0.8);
+        graphics.fillCircle(32, 32, 15);
+        graphics.generateTexture('btn-jump', 64, 64);
     }
 
     create() {
@@ -216,6 +244,36 @@ class GameScene extends Phaser.Scene {
         this.scoreText.setScrollFactor(0);
         const titleText = this.add.text(16, 50, 'Kaninis Påskjakt', { fontSize: '18px', fill: '#fff' }).setAlpha(0.7);
         titleText.setScrollFactor(0);
+
+        // Touch Control Pad
+        this.touchButtons = { left: false, right: false, jump: false };
+
+        if (!this.sys.game.device.os.desktop) {
+            this.input.addPointer(1);
+
+            const width = this.scale.width;
+            const height = this.scale.height;
+            const margin = 20;
+            const btnSize = 64;
+            const spacing = 10;
+
+            const xRight = width - margin - btnSize / 2;
+            const xLeft = xRight - btnSize - spacing;
+            const yBottom = height - margin - btnSize / 2;
+            const yTop = yBottom - btnSize - spacing;
+
+            const createBtn = (x, y, key, type) => {
+                const btn = this.add.image(x, y, key).setInteractive().setScrollFactor(0).setAlpha(0.8).setDepth(100);
+                btn.on('pointerdown', () => { this.touchButtons[type] = true; btn.setAlpha(1); });
+                btn.on('pointerup', () => { this.touchButtons[type] = false; btn.setAlpha(0.8); });
+                btn.on('pointerout', () => { this.touchButtons[type] = false; btn.setAlpha(0.8); });
+                return btn;
+            };
+
+            createBtn(xLeft, yBottom, 'btn-left', 'left');
+            createBtn(xRight, yBottom, 'btn-right', 'right');
+            createBtn(xRight, yTop, 'btn-jump', 'jump');
+        }
     }
 
     collectCarrot(player, carrot) {
@@ -275,30 +333,17 @@ class GameScene extends Phaser.Scene {
         }
 
         // Horizontal movement
-        if (this.cursors.left.isDown) {
+        if (this.cursors.left.isDown || this.touchButtons.left) {
             this.player.setVelocityX(-160);
-        } else if (this.cursors.right.isDown) {
+        } else if (this.cursors.right.isDown || this.touchButtons.right) {
             this.player.setVelocityX(160);
         } else {
             this.player.setVelocityX(0);
         }
 
         // Jumping
-        if ((this.cursors.up.isDown || this.cursors.space.isDown) && this.player.body.touching.down) {
+        if ((this.cursors.up.isDown || this.cursors.space.isDown || this.touchButtons.jump) && this.player.body.touching.down) {
             this.player.setVelocityY(-400);
-        }
-
-        // Touch movement (Mobile support)
-        const pointer = this.input.activePointer;
-        if (pointer.isDown) {
-            const width = this.sys.game.config.width;
-            if (pointer.x < width / 3) {
-                this.player.setVelocityX(-160);
-            } else if (pointer.x > (width / 3) * 2) {
-                this.player.setVelocityX(160);
-            } else if (this.player.body.touching.down) {
-                this.player.setVelocityY(-400);
-            }
         }
     }
 }
