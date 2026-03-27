@@ -242,7 +242,7 @@ class GameScene extends Phaser.Scene {
 
             const width = this.scale.width;
             const height = this.scale.height;
-            const padX = 100;
+            const padX = width - 100;
             const padY = height - 100;
 
             const padBase = this.add.image(padX, padY, 'pad-base').setInteractive(new Phaser.Geom.Circle(60, 60, 60), Phaser.Geom.Circle.Contains).setScrollFactor(0).setDepth(100);
