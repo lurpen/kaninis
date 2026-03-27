@@ -318,16 +318,43 @@ class GameScene extends Phaser.Scene {
     }
 
     hitMushroom(player, mushroom) {
-        this.physics.pause();
-        player.setTint(0xff0000);
+        if (this.gameOver) return;
         this.gameOver = true;
+        this.physics.pause();
+
+        // Highlight the mushroom that killed the rabbit
+        mushroom.setTint(0xffff00);
+        mushroom.setDepth(100);
+        player.setTint(0xff0000);
 
         const width = this.scale.width;
         const height = this.scale.height;
 
-        this.add.image(width / 2, height / 2, 'fail').setDisplaySize(width, height).setScrollFactor(0);
-        this.add.text(width / 2, height * 0.17, 'SPELET SLUT', { fontSize: '64px', fill: '#f00' }).setOrigin(0.5).setScrollFactor(0);
-        this.add.text(width / 2, height * 0.83, 'Tryck för att starta om', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0);
+        const failImage = this.add.image(width / 2, height / 2, 'fail')
+            .setDisplaySize(width, height)
+            .setScrollFactor(0)
+            .setAlpha(0)
+            .setDepth(1000);
+
+        const failText = this.add.text(width / 2, height * 0.17, 'SPELET SLUT', { fontSize: '64px', fill: '#f00', fontStyle: 'bold' })
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setAlpha(0)
+            .setDepth(1001);
+
+        const restartText = this.add.text(width / 2, height * 0.83, 'Tryck för att starta om', { fontSize: '32px', fill: '#fff' })
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setAlpha(0)
+            .setDepth(1001);
+
+        // Fade over to the fail image during 2.5 seconds
+        this.tweens.add({
+            targets: [failImage, failText, restartText],
+            alpha: 1,
+            duration: 2500,
+            ease: 'Linear'
+        });
 
         this.input.once('pointerdown', () => {
             this.scene.restart();
