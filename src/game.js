@@ -13,6 +13,8 @@ class PreloadScene extends Phaser.Scene {
         this.load.image('grass-right', 'assets/grass-right.png');
         this.load.image('carrot', 'assets/carrot.png');
         this.load.image('egg', 'assets/egg.png');
+        this.load.image('backdrop', 'assets/backdrop.png');
+        this.load.image('mushroom', 'assets/mushroom.png');
 
         let graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
@@ -25,18 +27,6 @@ class PreloadScene extends Phaser.Scene {
         graphics.fillStyle(0xffc0cb, 1); // Pink nose/inner ears
         graphics.fillCircle(16, 20, 3);
         graphics.generateTexture('rabbit', 32, 32);
-
-        // Mushroom - Red cap with white dots
-        graphics.clear();
-        graphics.fillStyle(0xdddddd, 1);
-        graphics.fillRect(12, 16, 8, 16); // Stem
-        graphics.fillStyle(0xff0000, 1);
-        graphics.fillCircle(16, 14, 14); // Cap
-        graphics.fillStyle(0xffffff, 1);
-        graphics.fillCircle(10, 10, 3);
-        graphics.fillCircle(22, 10, 3);
-        graphics.fillCircle(16, 6, 3);
-        graphics.generateTexture('mushroom', 32, 32);
 
         // Platform - Green rectangle
         graphics.clear();
@@ -225,6 +215,7 @@ class GameScene extends Phaser.Scene {
 
     create() {
         const data = this.cache.json.get('level1');
+        this.add.tileSprite(0, 0, data.width, data.height, 'backdrop').setOrigin(0, 0).setDepth(-100);
         this.score = 0;
         this.gameOver = false;
 
@@ -334,21 +325,21 @@ class GameScene extends Phaser.Scene {
             const padX = width - 100;
             const padY = height - 100;
 
-            const padBase = this.add.image(padX, padY, 'pad-base').setInteractive(new Phaser.Geom.Circle(60, 60, 60), Phaser.Geom.Circle.Contains).setScrollFactor(0).setDepth(100);
-            const padKnob = this.add.image(padX, padY, 'pad-knob').setScrollFactor(0).setDepth(101);
+            this.padBase = this.add.image(padX, padY, 'pad-base').setInteractive(new Phaser.Geom.Circle(60, 60, 60), Phaser.Geom.Circle.Contains).setScrollFactor(0).setDepth(100);
+            this.padKnob = this.add.image(padX, padY, 'pad-knob').setScrollFactor(0).setDepth(101);
 
             const updateMovement = (pointer) => {
                 const dist = pointer.x - padX;
                 const maxDist = 40;
                 const clampedDist = Phaser.Math.Clamp(dist, -maxDist, maxDist);
-                padKnob.x = padX + clampedDist;
+                this.padKnob.x = padX + clampedDist;
 
                 const deadZone = 10;
                 this.touchButtons.left = clampedDist < -deadZone;
                 this.touchButtons.right = clampedDist > deadZone;
             };
 
-            padBase.on('pointerdown', (pointer) => {
+            this.padBase.on('pointerdown', (pointer) => {
                 this.movePointer = pointer;
                 updateMovement(pointer);
             });
@@ -373,7 +364,7 @@ class GameScene extends Phaser.Scene {
             this.input.on('pointerup', (pointer) => {
                 if (pointer === this.movePointer) {
                     this.movePointer = null;
-                    padKnob.x = padX;
+                    this.padKnob.x = padX;
                     this.touchButtons.left = false;
                     this.touchButtons.right = false;
                 }
@@ -415,6 +406,9 @@ class GameScene extends Phaser.Scene {
         mushroom.setTint(0xffff00);
         mushroom.setDepth(100);
         player.setTint(0xff0000);
+
+        if (this.padBase) this.padBase.setVisible(false);
+        if (this.padKnob) this.padKnob.setVisible(false);
 
         const width = this.scale.width;
         const height = this.scale.height;
