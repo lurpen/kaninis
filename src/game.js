@@ -287,7 +287,9 @@ class GameScene extends Phaser.Scene {
         // Mushrooms - Hazards
         this.mushrooms = this.physics.add.staticGroup();
         data.mushrooms.forEach(m => {
-            this.mushrooms.create(m.x, m.y, 'mushroom');
+            const mushroom = this.mushrooms.create(m.x, m.y, 'mushroom');
+            mushroom.setScale(0.25);
+            mushroom.refreshBody();
         });
 
         // Physics checks

@@ -62,20 +62,9 @@ function preload() {
     this.load.image('grass-right', 'assets/grass-right.png');
     this.load.image('carrot', 'assets/carrot.png');
     this.load.image('egg', 'assets/egg.png');
+    this.load.image('mushroom', 'assets/mushroom.png');
 
     let graphics = this.make.graphics({ x: 0, y: 0, add: false });
-
-    // Mushroom
-    graphics.clear();
-    graphics.fillStyle(0xdddddd, 1);
-    graphics.fillRect(12, 16, 8, 16);
-    graphics.fillStyle(0xff0000, 1);
-    graphics.fillCircle(16, 14, 14);
-    graphics.fillStyle(0xffffff, 1);
-    graphics.fillCircle(10, 10, 3);
-    graphics.fillCircle(22, 10, 3);
-    graphics.fillCircle(16, 6, 3);
-    graphics.generateTexture('mushroom', 32, 32);
 
     // Platform
     graphics.clear();
@@ -186,6 +175,8 @@ function addObject(scene, x, y, type) {
         if (obj.body) obj.body.updateFromGameObject();
     } else if (type === 'mushroom') {
         obj = mushrooms.create(x, y, 'mushroom').setInteractive();
+        obj.setScale(0.25);
+        if (obj.body) obj.body.updateFromGameObject();
     } else if (type === 'exit') {
         if (exitObj) exitObj.destroy();
         exitObj = scene.physics.add.staticSprite(x, y, 'exit').setInteractive();
@@ -251,6 +242,8 @@ function loadLevelData(scene, data) {
     if (data.mushrooms) {
         data.mushrooms.forEach(m => {
             const obj = mushrooms.create(m.x, m.y, 'mushroom').setInteractive();
+            obj.setScale(0.25);
+            if (obj.body) obj.body.updateFromGameObject();
             obj.data = { type: 'mushroom' };
         });
     }
