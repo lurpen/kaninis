@@ -65,9 +65,12 @@ class TitleScene extends Phaser.Scene {
     }
 
     create() {
-        this.add.image(400, 300, 'title').setDisplaySize(800, 600);
+        const width = this.scale.width;
+        const height = this.scale.height;
 
-        this.add.text(400, 500, 'Tryck för att starta', {
+        this.add.image(width / 2, height / 2, 'title').setDisplaySize(width, height);
+
+        this.add.text(width / 2, height * 0.8, 'Tryck för att starta', {
             fontSize: '32px',
             fill: '#fff',
             backgroundColor: '#000',
@@ -238,9 +241,12 @@ class GameScene extends Phaser.Scene {
         player.setTint(0xff0000);
         this.gameOver = true;
 
-        this.add.image(400, 300, 'fail').setDisplaySize(800, 600).setScrollFactor(0);
-        this.add.text(400, 100, 'SPELET SLUT', { fontSize: '64px', fill: '#f00' }).setOrigin(0.5).setScrollFactor(0);
-        this.add.text(400, 500, 'Tryck för att starta om', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0);
+        const width = this.scale.width;
+        const height = this.scale.height;
+
+        this.add.image(width / 2, height / 2, 'fail').setDisplaySize(width, height).setScrollFactor(0);
+        this.add.text(width / 2, height * 0.17, 'SPELET SLUT', { fontSize: '64px', fill: '#f00' }).setOrigin(0.5).setScrollFactor(0);
+        this.add.text(width / 2, height * 0.83, 'Tryck för att starta om', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0);
 
         this.input.once('pointerdown', () => {
             this.scene.restart();
@@ -252,8 +258,11 @@ class GameScene extends Phaser.Scene {
         player.setTint(0x00ff00);
         this.gameOver = true;
 
-        this.add.text(400, 100, 'NIVÅ KLARAD!', { fontSize: '64px', fill: '#0f0' }).setOrigin(0.5).setScrollFactor(0);
-        this.add.text(400, 500, 'Tryck för att starta om', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0);
+        const width = this.scale.width;
+        const height = this.scale.height;
+
+        this.add.text(width / 2, height * 0.17, 'NIVÅ KLARAD!', { fontSize: '64px', fill: '#0f0' }).setOrigin(0.5).setScrollFactor(0);
+        this.add.text(width / 2, height * 0.83, 'Tryck för att starta om', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0);
 
         this.input.once('pointerdown', () => {
             this.scene.restart();
@@ -296,7 +305,7 @@ class GameScene extends Phaser.Scene {
 
 const config = {
     type: Phaser.AUTO,
-    width: 800,
+    width: 1075,
     height: 600,
     parent: 'game-container',
     scale: {
