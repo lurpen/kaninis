@@ -53,33 +53,20 @@ class PreloadScene extends Phaser.Scene {
         graphics.fillCircle(22, 16, 2);
         graphics.generateTexture('exit', 32, 32);
 
-        // Touch Control Buttons
-        // Base button circle
-        const drawButtonBase = (g) => {
-            g.clear();
-            g.fillStyle(0x000000, 0.5);
-            g.fillCircle(32, 32, 30);
-            g.lineStyle(2, 0xffffff, 0.8);
-            g.strokeCircle(32, 32, 30);
-        };
+        // Touch Control Pad
+        // Pad Base
+        graphics.clear();
+        graphics.fillStyle(0x000000, 0.4);
+        graphics.fillCircle(60, 60, 60);
+        graphics.lineStyle(2, 0xffffff, 0.6);
+        graphics.strokeCircle(60, 60, 60);
+        graphics.generateTexture('pad-base', 120, 120);
 
-        // Left button
-        drawButtonBase(graphics);
-        graphics.fillStyle(0xffffff, 0.8);
-        graphics.fillTriangle(20, 32, 44, 16, 44, 48);
-        graphics.generateTexture('btn-left', 64, 64);
-
-        // Right button
-        drawButtonBase(graphics);
-        graphics.fillStyle(0xffffff, 0.8);
-        graphics.fillTriangle(44, 32, 20, 16, 20, 48);
-        graphics.generateTexture('btn-right', 64, 64);
-
-        // Jump button
-        drawButtonBase(graphics);
-        graphics.fillStyle(0xffffff, 0.8);
-        graphics.fillCircle(32, 32, 15);
-        graphics.generateTexture('btn-jump', 64, 64);
+        // Pad Knob
+        graphics.clear();
+        graphics.fillStyle(0xffffff, 0.7);
+        graphics.fillCircle(30, 30, 30);
+        graphics.generateTexture('pad-knob', 60, 60);
     }
 
     create() {
@@ -247,32 +234,68 @@ class GameScene extends Phaser.Scene {
 
         // Touch Control Pad
         this.touchButtons = { left: false, right: false, jump: false };
+        this.jumpPointers = new Set();
+        this.movePointer = null;
 
         if (!this.sys.game.device.os.desktop) {
-            this.input.addPointer(1);
+            this.input.addPointer(2);
 
             const width = this.scale.width;
             const height = this.scale.height;
-            const margin = 20;
-            const btnSize = 64;
-            const spacing = 10;
+            const padX = 100;
+            const padY = height - 100;
 
-            const xRight = width - margin - btnSize / 2;
-            const xLeft = xRight - btnSize - spacing;
-            const yBottom = height - margin - btnSize / 2;
-            const yTop = yBottom - btnSize - spacing;
+            const padBase = this.add.image(padX, padY, 'pad-base').setInteractive(new Phaser.Geom.Circle(60, 60, 60), Phaser.Geom.Circle.Contains).setScrollFactor(0).setDepth(100);
+            const padKnob = this.add.image(padX, padY, 'pad-knob').setScrollFactor(0).setDepth(101);
 
-            const createBtn = (x, y, key, type) => {
-                const btn = this.add.image(x, y, key).setInteractive().setScrollFactor(0).setAlpha(0.8).setDepth(100);
-                btn.on('pointerdown', () => { this.touchButtons[type] = true; btn.setAlpha(1); });
-                btn.on('pointerup', () => { this.touchButtons[type] = false; btn.setAlpha(0.8); });
-                btn.on('pointerout', () => { this.touchButtons[type] = false; btn.setAlpha(0.8); });
-                return btn;
+            const updateMovement = (pointer) => {
+                const dist = pointer.x - padX;
+                const maxDist = 40;
+                const clampedDist = Phaser.Math.Clamp(dist, -maxDist, maxDist);
+                padKnob.x = padX + clampedDist;
+
+                const deadZone = 10;
+                this.touchButtons.left = clampedDist < -deadZone;
+                this.touchButtons.right = clampedDist > deadZone;
             };
 
-            createBtn(xLeft, yBottom, 'btn-left', 'left');
-            createBtn(xRight, yBottom, 'btn-right', 'right');
-            createBtn(xRight, yTop, 'btn-jump', 'jump');
+            padBase.on('pointerdown', (pointer) => {
+                this.movePointer = pointer;
+                updateMovement(pointer);
+            });
+
+            this.input.on('pointermove', (pointer) => {
+                if (pointer === this.movePointer) {
+                    updateMovement(pointer);
+                }
+            });
+
+            this.input.on('pointerdown', (pointer) => {
+                // If this pointer is already handled by the padBase pointerdown, ignore it here
+                if (pointer === this.movePointer) return;
+
+                const dist = Phaser.Math.Distance.Between(pointer.x, pointer.y, padX, padY);
+                if (dist > 100) { // Pad radius (60) + margin
+                    this.touchButtons.jump = true;
+                    this.jumpPointers.add(pointer.id);
+                }
+            });
+
+            this.input.on('pointerup', (pointer) => {
+                if (pointer === this.movePointer) {
+                    this.movePointer = null;
+                    padKnob.x = padX;
+                    this.touchButtons.left = false;
+                    this.touchButtons.right = false;
+                }
+
+                if (this.jumpPointers.has(pointer.id)) {
+                    this.jumpPointers.delete(pointer.id);
+                    if (this.jumpPointers.size === 0) {
+                        this.touchButtons.jump = false;
+                    }
+                }
+            });
         }
     }
 
