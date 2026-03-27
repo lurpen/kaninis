@@ -5,6 +5,7 @@ class PreloadScene extends Phaser.Scene {
 
     preload() {
         this.load.json('level1', 'levels/level1.json');
+        this.load.audio('theme', 'assets/kaninis-theme.mp3');
         this.load.image('fail', 'assets/fail.jpg');
         this.load.image('title', 'assets/title.jpg');
         this.load.image('grass-left', 'assets/grass-left.png');
@@ -83,17 +84,105 @@ class TitleScene extends Phaser.Scene {
         const width = this.scale.width;
         const height = this.scale.height;
 
-        this.add.image(width / 2, height / 2, 'title').setDisplaySize(width, height);
+        // Initialize music if it's not already playing
+        if (!this.sound.get('theme')) {
+            this.themeMusic = this.sound.add('theme', { loop: true });
+            this.themeMusic.play();
+        } else if (!this.sound.get('theme').isPlaying) {
+            this.sound.get('theme').play();
+        }
 
-        this.add.text(width / 2, height * 0.8, 'Tryck för att starta', {
+        // Add the title image but keep it invisible
+        const titleImg = this.add.image(width / 2, height / 2, 'title').setDisplaySize(width, height).setAlpha(0);
+
+        // Start prompt text, also invisible
+        const startPrompt = this.add.text(width / 2, height * 0.8, 'Tryck för att starta', {
             fontSize: '32px',
             fill: '#fff',
             backgroundColor: '#000',
             padding: { x: 10, y: 5 }
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setAlpha(0);
 
-        this.input.once('pointerdown', () => {
-            this.scene.start('GameScene');
+        // Create the intro text objects
+        const kaninisText = this.add.text(width / 2, height / 2, 'Kaninis', {
+            fontSize: '64px',
+            fill: '#fff',
+            fontStyle: 'bold'
+        }).setOrigin(0.5).setAlpha(0);
+
+        const presenterarText = this.add.text(width / 2, height / 2, 'presenterar', {
+            fontSize: '48px',
+            fill: '#fff'
+        }).setOrigin(0.5).setAlpha(0);
+
+        let introFinished = false;
+
+        const finishIntro = () => {
+            if (introFinished) return;
+            introFinished = true;
+
+            // Stop all active tweens in this scene
+            this.tweens.killAll();
+
+            // Set final states
+            kaninisText.setAlpha(0);
+            presenterarText.setAlpha(0);
+            titleImg.setAlpha(1);
+
+            // Fade in start prompt
+            this.tweens.add({
+                targets: startPrompt,
+                alpha: 1,
+                duration: 500,
+                ease: 'Power1'
+            });
+
+            // Re-enable the "start game" click listener after a short delay
+            this.time.delayedCall(200, () => {
+                this.input.once('pointerdown', () => {
+                    this.scene.start('GameScene');
+                });
+                this.input.keyboard.once('keydown', () => {
+                    this.scene.start('GameScene');
+                });
+            });
+        };
+
+        // Listen for skip
+        this.input.once('pointerdown', finishIntro);
+        this.input.keyboard.once('keydown', finishIntro);
+
+        // Intro sequence using tweens
+        this.tweens.add({
+            targets: kaninisText,
+            alpha: 1,
+            duration: 1000,
+            ease: 'Linear',
+            yoyo: true,
+            hold: 1000,
+            onComplete: () => {
+                if (introFinished) return;
+                this.tweens.add({
+                    targets: presenterarText,
+                    alpha: 1,
+                    duration: 1000,
+                    ease: 'Linear',
+                    yoyo: true,
+                    hold: 1000,
+                    onComplete: () => {
+                        if (introFinished) return;
+                        this.tweens.add({
+                            targets: titleImg,
+                            alpha: 1,
+                            duration: 2000,
+                            ease: 'Linear',
+                            onComplete: () => {
+                                finishIntro();
+                            }
+                        });
+                    }
+                });
+            }
         });
     }
 }
