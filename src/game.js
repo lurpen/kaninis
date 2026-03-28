@@ -6,6 +6,9 @@ class PreloadScene extends Phaser.Scene {
     preload() {
         this.load.json('level1', 'levels/level1.json');
         this.load.audio('theme', 'assets/kaninis-theme.mp3');
+        this.load.audio('death', 'assets/death.mp3');
+        this.load.audio('catch-egg', 'assets/catch-egg.mp3');
+        this.load.audio('eat-carrot', 'assets/eat-carrot.mp3');
         this.load.image('fail', 'assets/fail.jpg');
         this.load.image('title', 'assets/title.jpg');
         this.load.image('grass-left', 'assets/grass-left.png');
@@ -65,7 +68,20 @@ class PreloadScene extends Phaser.Scene {
     }
 }
 
-class TitleScene extends Phaser.Scene {
+class BaseScene extends Phaser.Scene {
+    ensureThemePlaying() {
+        let theme = this.sound.get('theme');
+        if (!theme) {
+            theme = this.sound.add('theme', { loop: true });
+        }
+        if (!theme.isPlaying) {
+            theme.play();
+        }
+        return theme;
+    }
+}
+
+class TitleScene extends BaseScene {
     constructor() {
         super('TitleScene');
     }
@@ -75,12 +91,7 @@ class TitleScene extends Phaser.Scene {
         const height = this.scale.height;
 
         // Initialize music if it's not already playing
-        if (!this.sound.get('theme')) {
-            this.themeMusic = this.sound.add('theme', { loop: true });
-            this.themeMusic.play();
-        } else if (!this.sound.get('theme').isPlaying) {
-            this.sound.get('theme').play();
-        }
+        this.ensureThemePlaying();
 
         // Add the title image but keep it invisible
         const titleImg = this.add.image(width / 2, height / 2, 'title').setDisplaySize(width, height).setAlpha(0);
@@ -177,7 +188,7 @@ class TitleScene extends Phaser.Scene {
     }
 }
 
-class GameScene extends Phaser.Scene {
+class GameScene extends BaseScene {
     constructor() {
         super('GameScene');
     }
@@ -214,6 +225,7 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
+        this.ensureThemePlaying();
         const data = this.cache.json.get('level1');
         this.add.tileSprite(0, 0, data.width, data.height, 'backdrop').setOrigin(0, 0).setDepth(-100);
         this.score = 0;
@@ -380,6 +392,7 @@ class GameScene extends Phaser.Scene {
     }
 
     collectCarrot(player, carrot) {
+        this.sound.play('eat-carrot');
         carrot.disableBody(true, true);
         this.score += 10;
         this.scoreText.setText('Poäng: ' + this.score);
@@ -392,6 +405,7 @@ class GameScene extends Phaser.Scene {
     }
 
     collectEgg(player, egg) {
+        this.sound.play('catch-egg');
         egg.disableBody(true, true);
         this.score += 100;
         this.scoreText.setText('Poäng: ' + this.score);
@@ -401,6 +415,10 @@ class GameScene extends Phaser.Scene {
         if (this.gameOver) return;
         this.gameOver = true;
         this.physics.pause();
+
+        const theme = this.sound.get('theme');
+        if (theme) theme.stop();
+        this.sound.play('death');
 
         // Highlight the mushroom that killed the rabbit
         mushroom.setTint(0xffff00);
