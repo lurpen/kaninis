@@ -199,7 +199,8 @@ function addObject(scene, x, y, type) {
     }
 
     if (obj) {
-        obj.data = { type: type };
+        if (!obj.data) obj.data = {};
+        obj.data.type = type;
         selectObject(obj);
     }
 }
