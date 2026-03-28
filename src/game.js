@@ -229,12 +229,11 @@ class GameScene extends BaseScene {
         this.ensureThemePlaying();
         const data = this.cache.json.get('level1');
 
-        // Add sky - fixed background
-        this.add.image(0, 0, 'sky')
+        // Add sky - fixed background (tiled/cropped to maintain aspect ratio)
+        this.add.tileSprite(0, 0, this.scale.width, this.scale.height, 'sky')
             .setOrigin(0, 0)
             .setScrollFactor(0)
-            .setDepth(-200)
-            .setDisplaySize(this.scale.width, this.scale.height);
+            .setDepth(-200);
 
         // Add landscape - parallax background
         const landscapeTexture = this.textures.get('landscape').get();
