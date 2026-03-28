@@ -197,6 +197,12 @@ class GameScene extends BaseScene {
         const key = `platform_${width}`;
         if (this.textures.exists(key)) return key;
 
+        // Ensure we have a frame for tiling that excludes the edges
+        if (!this.textures.get('grass-middle').has('tile')) {
+            const middleSource = this.textures.get('grass-middle').getSourceImage();
+            this.textures.get('grass-middle').add('tile', 0, 7, 0, middleSource.width - 14, 77);
+        }
+
         const height = 77;
         const rt = this.make.renderTexture({ width: width, height: height }, false);
 
@@ -211,7 +217,7 @@ class GameScene extends BaseScene {
         // Tile middle
         const middleWidth = width - 14;
         if (middleWidth > 0) {
-            const middle = this.add.tileSprite(7, 0, middleWidth, height, 'grass-middle').setOrigin(0, 0).setVisible(false);
+            const middle = this.add.tileSprite(7, 0, middleWidth, height, 'grass-middle', 'tile').setOrigin(0, 0).setVisible(false);
             rt.draw(middle, 7, 0);
             middle.destroy();
         }
