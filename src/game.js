@@ -257,7 +257,7 @@ class GameScene extends BaseScene {
         });
 
         // The player and its settings
-        this.player = this.physics.add.sprite(100, 450, 'rabbit');
+        this.player = this.physics.add.sprite(300, 450, 'rabbit');
         this.player.setSize(24, 32);
         this.player.setOffset(4, 0);
         this.player.setBounce(0.1);
@@ -336,7 +336,7 @@ class GameScene extends BaseScene {
 
             const width = this.scale.width;
             const height = this.scale.height;
-            const padX = width - 100;
+            const padX = 100;
             const padY = height - 100;
 
             this.padBase = this.add.image(padX, padY, 'pad-base').setInteractive(new Phaser.Geom.Circle(60, 60, 60), Phaser.Geom.Circle.Contains).setScrollFactor(0).setDepth(100);
