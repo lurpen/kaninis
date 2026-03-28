@@ -142,10 +142,10 @@ class TitleScene extends BaseScene {
             // Re-enable the "start game" click listener after a short delay
             this.time.delayedCall(200, () => {
                 this.input.once('pointerdown', () => {
-                    this.scene.start('GameScene');
+                    this.scene.start('GameScene', { level: 1 });
                 });
                 this.input.keyboard.once('keydown', () => {
-                    this.scene.start('GameScene');
+                    this.scene.start('GameScene', { level: 1 });
                 });
             });
         };
@@ -194,6 +194,17 @@ class GameScene extends BaseScene {
         super('GameScene');
     }
 
+    init(data) {
+        this.level = data.level || 1;
+    }
+
+    preload() {
+        const key = 'level' + this.level;
+        if (!this.cache.json.exists(key)) {
+            this.load.json(key, 'levels/' + key + '.json');
+        }
+    }
+
     getPlatformTexture(width) {
         const key = `platform_${width}`;
         if (this.textures.exists(key)) return key;
@@ -227,7 +238,7 @@ class GameScene extends BaseScene {
 
     create() {
         this.ensureThemePlaying();
-        const data = this.cache.json.get('level1');
+        const data = this.cache.json.get('level' + this.level);
 
         // Add sky - fixed background
         this.add.image(0, 0, 'sky')
@@ -476,12 +487,15 @@ class GameScene extends BaseScene {
             ease: 'Linear'
         });
 
-        this.input.once('pointerdown', () => {
-            this.scene.restart();
-        });
+        const restartAction = () => {
+            this.scene.restart({ level: this.level });
+        };
+
+        this.input.once('pointerdown', restartAction);
+        this.input.keyboard.once('keydown', restartAction);
     }
 
-    reachExit(player, exit) {
+    async reachExit(player, exit) {
         this.physics.pause();
         player.setTint(0x00ff00);
         this.gameOver = true;
@@ -489,12 +503,35 @@ class GameScene extends BaseScene {
         const width = this.scale.width;
         const height = this.scale.height;
 
-        this.add.text(width / 2, height * 0.17, 'NIVÅ KLARAD!', { fontSize: '64px', fill: '#0f0' }).setOrigin(0.5).setScrollFactor(0);
-        this.add.text(width / 2, height * 0.83, 'Tryck för att starta om', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0);
+        const nextLevel = this.level + 1;
+        let hasNextLevel = false;
 
-        this.input.once('pointerdown', () => {
-            this.scene.restart();
-        });
+        try {
+            const response = await fetch('levels/level' + nextLevel + '.json', { method: 'HEAD' });
+            hasNextLevel = response.ok;
+        } catch (e) {
+            hasNextLevel = false;
+        }
+
+        if (hasNextLevel) {
+            this.add.text(width / 2, height * 0.17, 'NIVÅ KLARAD!', { fontSize: '64px', fill: '#0f0' }).setOrigin(0.5).setScrollFactor(0);
+            this.add.text(width / 2, height * 0.83, 'Tryck för nästa nivå', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0);
+
+            const nextAction = () => {
+                this.scene.start('GameScene', { level: nextLevel });
+            };
+            this.input.once('pointerdown', nextAction);
+            this.input.keyboard.once('keydown', nextAction);
+        } else {
+            this.add.text(width / 2, height * 0.17, 'ALLA NIVÅER KLARADE!', { fontSize: '64px', fill: '#0f0' }).setOrigin(0.5).setScrollFactor(0);
+            this.add.text(width / 2, height * 0.83, 'Tryck för att börja om', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0);
+
+            const restartAction = () => {
+                this.scene.start('GameScene', { level: 1 });
+            };
+            this.input.once('pointerdown', restartAction);
+            this.input.keyboard.once('keydown', restartAction);
+        }
     }
 
     update() {
