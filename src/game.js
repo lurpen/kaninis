@@ -16,7 +16,8 @@ class PreloadScene extends Phaser.Scene {
         this.load.image('grass-right', 'assets/grass-right.png');
         this.load.image('carrot', 'assets/carrot.png');
         this.load.image('egg', 'assets/egg.png');
-        this.load.image('backdrop', 'assets/backdrop.png');
+        this.load.image('sky', 'assets/sky.jpg');
+        this.load.image('landscape', 'assets/landscape.png');
         this.load.image('mushroom', 'assets/mushroom.png');
 
         let graphics = this.make.graphics({ x: 0, y: 0, add: false });
@@ -227,7 +228,23 @@ class GameScene extends BaseScene {
     create() {
         this.ensureThemePlaying();
         const data = this.cache.json.get('level1');
-        this.add.tileSprite(0, 0, data.width, data.height, 'backdrop').setOrigin(0, 0).setDepth(-100);
+
+        // Add sky - fixed background
+        this.add.image(0, 0, 'sky')
+            .setOrigin(0, 0)
+            .setScrollFactor(0)
+            .setDepth(-200)
+            .setDisplaySize(this.scale.width, this.scale.height);
+
+        // Add landscape - parallax background
+        const landscapeTexture = this.textures.get('landscape').get();
+        this.landscapeScale = this.scale.height / landscapeTexture.height;
+        this.landscape = this.add.tileSprite(0, 0, this.scale.width, this.scale.height, 'landscape')
+            .setOrigin(0, 0)
+            .setScrollFactor(0)
+            .setDepth(-100)
+            .setTileScale(this.landscapeScale, this.landscapeScale);
+
         this.score = 0;
         this.gameOver = false;
 
@@ -483,6 +500,11 @@ class GameScene extends BaseScene {
     update() {
         if (this.gameOver) {
             return;
+        }
+
+        // Update parallax background
+        if (this.landscape) {
+            this.landscape.tilePositionX = (this.cameras.main.scrollX * 0.5) / this.landscapeScale;
         }
 
         // Horizontal movement
