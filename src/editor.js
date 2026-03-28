@@ -24,27 +24,21 @@ function getPlatformTexture(scene, width) {
     const key = `platform_${width}`;
     if (scene.textures.exists(key)) return key;
 
-    // Ensure we have a frame for tiling that excludes the edges
-    if (!scene.textures.get('grass-middle').has('tile')) {
-        const middleSource = scene.textures.get('grass-middle').getSourceImage();
-        scene.textures.get('grass-middle').add('tile', 0, 7, 0, middleSource.width - 14, 77);
-    }
-
     const height = 77;
     const rt = scene.make.renderTexture({ width: width, height: height }, false);
 
-    // Draw left edge
+    // Draw left edge (7px wide)
     const left = scene.add.image(0, 0, 'grass-left').setOrigin(0, 0).setVisible(false);
     rt.draw(left, 0, 0);
 
-    // Draw right edge
+    // Draw right edge (7px wide)
     const right = scene.add.image(width, 0, 'grass-right').setOrigin(1, 0).setVisible(false);
     rt.draw(right, width, 0);
 
-    // Tile middle
+    // Tile middle (grass-middle is already without edges and tileable)
     const middleWidth = width - 14;
     if (middleWidth > 0) {
-        const middle = scene.add.tileSprite(7, 0, middleWidth, height, 'grass-middle', 'tile').setOrigin(0, 0).setVisible(false);
+        const middle = scene.add.tileSprite(7, 0, middleWidth, height, 'grass-middle').setOrigin(0, 0).setVisible(false);
         rt.draw(middle, 7, 0);
         middle.destroy();
     }
