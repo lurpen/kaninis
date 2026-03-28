@@ -200,15 +200,15 @@ class GameScene extends BaseScene {
         const height = 77;
         const rt = this.make.renderTexture({ width: width, height: height }, false);
 
-        // Draw left edge
+        // Draw left edge (7px wide)
         const left = this.add.image(0, 0, 'grass-left').setOrigin(0, 0).setVisible(false);
         rt.draw(left, 0, 0);
 
-        // Draw right edge
+        // Draw right edge (7px wide)
         const right = this.add.image(width, 0, 'grass-right').setOrigin(1, 0).setVisible(false);
         rt.draw(right, width, 0);
 
-        // Tile middle
+        // Tile middle (grass-middle is already without edges and tileable)
         const middleWidth = width - 14;
         if (middleWidth > 0) {
             const middle = this.add.tileSprite(7, 0, middleWidth, height, 'grass-middle').setOrigin(0, 0).setVisible(false);
