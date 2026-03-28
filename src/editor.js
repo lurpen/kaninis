@@ -173,12 +173,17 @@ function addObject(scene, x, y, type) {
         const scaleX = 1;
         const scaleY = 1;
         const width = 32 * scaleX;
-        const height = 32 * scaleY;
         const textureKey = getPlatformTexture(scene, width);
-        const grassY = (y - height / 2 - 17) + 38.5;
+        const grassY = y + 5.5 * scaleY;
         obj = platforms.create(x, grassY, textureKey).setInteractive();
-        obj.setSize(width, height);
-        obj.setOffset(0, 17);
+        obj.setScale(1, scaleY);
+        if (obj.body) {
+            obj.body.allowGravity = false;
+            obj.body.immovable = true;
+            obj.body.setOffset(0, 17 * scaleY);
+            obj.body.updateFromGameObject();
+            obj.body.setSize(width, 32 * scaleY, false);
+        }
         obj.data = { type: type, scaleX: scaleX, scaleY: scaleY };
     } else if (type === 'carrot') {
         obj = carrots.create(x, y, 'carrot').setInteractive();
@@ -225,14 +230,20 @@ function loadLevelData(scene, data) {
 
     if (data.platforms) {
         data.platforms.forEach(p => {
+            const scaleY = p.scaleY || 1;
             const width = 32 * p.scaleX;
-            const height = 32 * p.scaleY;
             const textureKey = getPlatformTexture(scene, width);
-            const grassY = (p.y - height / 2 - 17) + 38.5;
+            const grassY = p.y + 5.5 * scaleY;
             const obj = platforms.create(p.x, grassY, textureKey).setInteractive();
-            obj.setSize(width, height);
-            obj.setOffset(0, 17);
-            obj.data = { type: 'platform', scaleX: p.scaleX, scaleY: p.scaleY };
+            obj.setScale(1, scaleY);
+            if (obj.body) {
+                obj.body.allowGravity = false;
+                obj.body.immovable = true;
+                obj.body.setOffset(0, 17 * scaleY);
+                obj.body.updateFromGameObject();
+                obj.body.setSize(width, 32 * scaleY, false);
+            }
+            obj.data = { type: 'platform', scaleX: p.scaleX, scaleY: scaleY };
         });
     }
 
@@ -281,9 +292,10 @@ function saveLevelData() {
     };
 
     platforms.children.iterate(p => {
-        const height = 32 * p.data.scaleY;
-        const collisionY = p.y - 38.5 + 17 + height / 2;
-        data.platforms.push({ x: p.x, y: collisionY, scaleX: p.data.scaleX, scaleY: p.data.scaleY });
+        const scaleY = p.data.scaleY;
+        // Collision Y (the baseline) is grassY - 5.5 * scaleY
+        const collisionY = p.y - 5.5 * scaleY;
+        data.platforms.push({ x: p.x, y: collisionY, scaleX: p.data.scaleX, scaleY: scaleY });
     });
 
     carrots.children.iterate(c => {
@@ -356,14 +368,13 @@ function setupUI(scene) {
             const scaleX = parseFloat(e.target.value);
             const scaleY = selectedObject.data.scaleY;
             const width = 32 * scaleX;
-            const height = 32 * scaleY;
             const textureKey = getPlatformTexture(scene, width);
             selectedObject.setTexture(textureKey);
             selectedObject.data.scaleX = scaleX;
-            selectedObject.setSize(width, height);
-            selectedObject.setOffset(0, 17);
             if (selectedObject.body) {
+                selectedObject.body.setOffset(0, 17 * scaleY);
                 selectedObject.body.updateFromGameObject();
+                selectedObject.body.setSize(width, 32 * scaleY, false);
             }
         }
     });

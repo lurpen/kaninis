@@ -239,21 +239,24 @@ class GameScene extends BaseScene {
         this.platforms = this.physics.add.staticGroup();
 
         data.platforms.forEach(p => {
+            const scaleY = p.scaleY || 1;
             const width = 32 * p.scaleX;
             const textureKey = this.getPlatformTexture(width);
 
             // The grass texture is 77px high. The baseline is 17px from the top.
             // We want the physics body to be 32px high starting at that baseline.
-            // grassY = p.y + 5.5 * p.scaleY (from previous calculation)
-            const grassY = p.y + 5.5 * p.scaleY;
+            // grassY = p.y + 5.5 * scaleY
+            const grassY = p.y + 5.5 * scaleY;
 
             const platform = this.platforms.create(p.x, grassY, textureKey);
-            platform.setScale(1, p.scaleY);
-            platform.refreshBody(); // This sets the body size to the sprite size (77 * scaleY)
+            platform.setScale(1, scaleY);
 
             // Now adjust the hitbox to be 32px high (scaled), starting 17px (scaled) from the top
-            platform.body.setSize(width, 32 * p.scaleY);
-            platform.body.setOffset(0, 17 * p.scaleY);
+            // Important: setOffset must come before updateFromGameObject to set the correct x/y,
+            // and setSize must come after updateFromGameObject to override the default sprite size.
+            platform.body.setOffset(0, 17 * scaleY);
+            platform.body.updateFromGameObject();
+            platform.body.setSize(width, 32 * scaleY, false);
         });
 
         // The player and its settings
