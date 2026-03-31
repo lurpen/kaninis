@@ -300,7 +300,7 @@ class GameScene extends BaseScene {
 
         // The player and its settings
         // Scale 0.1 because original frames are ~300x360 and original rabbit was 32x32.
-        this.player = this.physics.add.sprite(300, 450, 'kaninis');
+        this.player = this.physics.add.sprite(300, 450, 'kaninis', this.idleFrame);
         this.player.setScale(0.1);
         this.player.setSize(240, 320);
         this.player.setOffset(33, 40); // Centering the hitbox
