@@ -19,6 +19,7 @@ class PreloadScene extends Phaser.Scene {
         this.load.image('sky', 'assets/sky.jpg');
         this.load.image('landscape', 'assets/landscape.png');
         this.load.image('mushroom', 'assets/mushroom.png');
+        this.load.atlas('kaninis', 'assets/walking-right.png', 'assets/walking-right_phaser_atlas.json');
 
         let graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
@@ -238,6 +239,20 @@ class GameScene extends BaseScene {
 
     create() {
         this.ensureThemePlaying();
+
+        // Create walking animation if it doesn't exist
+        const frameNames = this.textures.get('kaninis').getFrameNames().sort();
+        this.idleFrame = frameNames[0];
+
+        if (!this.anims.exists('walk')) {
+            this.anims.create({
+                key: 'walk',
+                frames: frameNames.map(name => ({ key: 'kaninis', frame: name })),
+                frameRate: 30,
+                repeat: -1
+            });
+        }
+
         const data = this.cache.json.get('level' + this.level);
 
         // Add sky - fixed background (tiled/cropped to maintain aspect ratio)
@@ -284,9 +299,11 @@ class GameScene extends BaseScene {
         });
 
         // The player and its settings
-        this.player = this.physics.add.sprite(300, 450, 'rabbit');
-        this.player.setSize(24, 32);
-        this.player.setOffset(4, 0);
+        // Scale 0.1 because original frames are ~300x360 and original rabbit was 32x32.
+        this.player = this.physics.add.sprite(300, 450, 'kaninis');
+        this.player.setScale(0.1);
+        this.player.setSize(240, 320);
+        this.player.setOffset(33, 40); // Centering the hitbox
         this.player.setBounce(0.1);
         this.player.setCollideWorldBounds(true);
 
@@ -546,10 +563,16 @@ class GameScene extends BaseScene {
         // Horizontal movement
         if (this.cursors.left.isDown || this.touchButtons.left) {
             this.player.setVelocityX(-160);
+            this.player.setFlipX(true);
+            this.player.anims.play('walk', true);
         } else if (this.cursors.right.isDown || this.touchButtons.right) {
             this.player.setVelocityX(160);
+            this.player.setFlipX(false);
+            this.player.anims.play('walk', true);
         } else {
             this.player.setVelocityX(0);
+            this.player.anims.stop();
+            this.player.setFrame(this.idleFrame);
         }
 
         // Jumping
