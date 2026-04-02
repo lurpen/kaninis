@@ -78,6 +78,7 @@ function preload() {
     this.load.image('carrot', 'assets/carrot.png');
     this.load.image('egg', 'assets/egg.png');
     this.load.image('mushroom', 'assets/mushroom.png');
+    this.load.image('exit', 'assets/exit.png');
 
     let graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
@@ -89,13 +90,6 @@ function preload() {
     graphics.fillRect(0, 24, 32, 8);
     graphics.generateTexture('platform', 32, 32);
 
-    // Exit
-    graphics.clear();
-    graphics.fillStyle(0x8b4513, 1);
-    graphics.fillRect(4, 0, 24, 32);
-    graphics.fillStyle(0xffff00, 1);
-    graphics.fillCircle(22, 16, 2);
-    graphics.generateTexture('exit', 32, 32);
 }
 
 function create() {
@@ -196,6 +190,7 @@ function addObject(scene, x, y, type) {
     } else if (type === 'exit') {
         if (exitObj) exitObj.destroy();
         exitObj = scene.physics.add.staticSprite(x, y, 'exit').setInteractive();
+        exitObj.setScale(0.25).refreshBody();
         obj = exitObj;
     }
 
@@ -270,6 +265,7 @@ function loadLevelData(scene, data) {
 
     if (data.exit) {
         exitObj = scene.physics.add.staticSprite(data.exit.x, data.exit.y, 'exit').setInteractive();
+        exitObj.setScale(0.25).refreshBody();
         exitObj.data = { type: 'exit' };
     }
 }

@@ -19,6 +19,7 @@ class PreloadScene extends Phaser.Scene {
         this.load.image('sky', 'assets/sky.jpg');
         this.load.image('landscape', 'assets/landscape.png');
         this.load.image('mushroom', 'assets/mushroom.png');
+        this.load.image('exit', 'assets/exit.png');
         this.load.atlas('kaninis', 'assets/walking-right.png', 'assets/walking-right_phaser_atlas.json');
 
         let graphics = this.make.graphics({ x: 0, y: 0, add: false });
@@ -40,14 +41,6 @@ class PreloadScene extends Phaser.Scene {
         graphics.fillStyle(0x8b4513, 1);
         graphics.fillRect(0, 24, 32, 8);
         graphics.generateTexture('platform', 32, 32);
-
-        // Exit - Brown door
-        graphics.clear();
-        graphics.fillStyle(0x8b4513, 1);
-        graphics.fillRect(4, 0, 24, 32);
-        graphics.fillStyle(0xffff00, 1);
-        graphics.fillCircle(22, 16, 2);
-        graphics.generateTexture('exit', 32, 32);
 
         // Touch Control Pad
         // Pad Base
@@ -356,6 +349,7 @@ class GameScene extends BaseScene {
         // Exit
         if (data.exit) {
             this.exit = this.physics.add.staticSprite(data.exit.x, data.exit.y, 'exit');
+            this.exit.setScale(0.25).refreshBody();
             this.physics.add.overlap(this.player, this.exit, this.reachExit, null, this);
         }
 
