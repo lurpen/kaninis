@@ -131,8 +131,8 @@ function create() {
     this.input.on('pointermove', (pointer) => {
         if (currentTool === 'select' && selectedObject && pointer.isDown) {
             const worldPoint = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
-            selectedObject.x = worldPoint.x;
-            selectedObject.y = worldPoint.y;
+            selectedObject.x = Math.round(worldPoint.x);
+            selectedObject.y = Math.round(worldPoint.y);
 
             if (selectedObject.body) {
                 selectedObject.body.updateFromGameObject();
@@ -163,6 +163,8 @@ function deselectObject() {
 }
 
 function addObject(scene, x, y, type) {
+    x = Math.round(x);
+    y = Math.round(y);
     let obj;
     if (type === 'platform') {
         const scaleX = 1;
@@ -284,23 +286,23 @@ function saveLevelData() {
     platforms.children.iterate(p => {
         const height = 32 * p.data.scaleY;
         const collisionY = p.y - 38.5 + 17 + height / 2;
-        data.platforms.push({ x: p.x, y: collisionY, scaleX: p.data.scaleX, scaleY: p.data.scaleY });
+        data.platforms.push({ x: Math.round(p.x), y: Math.round(collisionY), scaleX: p.data.scaleX, scaleY: p.data.scaleY });
     });
 
     carrots.children.iterate(c => {
-        data.carrots.push({ x: c.x, y: c.y });
+        data.carrots.push({ x: Math.round(c.x), y: Math.round(c.y) });
     });
 
     eggs.children.iterate(e => {
-        data.eggs.push({ x: e.x, y: e.y });
+        data.eggs.push({ x: Math.round(e.x), y: Math.round(e.y) });
     });
 
     mushrooms.children.iterate(m => {
-        data.mushrooms.push({ x: m.x, y: m.y });
+        data.mushrooms.push({ x: Math.round(m.x), y: Math.round(m.y) });
     });
 
     if (exitObj) {
-        data.exit = { x: exitObj.x, y: exitObj.y };
+        data.exit = { x: Math.round(exitObj.x), y: Math.round(exitObj.y) };
     }
 
     const blob = new Blob([JSON.stringify(data, null, 4)], { type: 'application/json' });
