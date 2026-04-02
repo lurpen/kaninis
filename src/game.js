@@ -10,6 +10,7 @@ class PreloadScene extends Phaser.Scene {
         this.load.audio('catch-egg', 'assets/catch-egg.mp3');
         this.load.audio('eat-carrot', 'assets/eat-carrot.mp3');
         this.load.image('fail', 'assets/fail.jpg');
+        this.load.image('win', 'assets/win.jpg');
         this.load.image('title', 'assets/title.jpg');
         this.load.image('grass-left', 'assets/grass-left.png');
         this.load.image('grass-middle', 'assets/grass-middle.png');
@@ -533,8 +534,34 @@ class GameScene extends BaseScene {
             this.input.once('pointerdown', nextAction);
             this.input.keyboard.once('keydown', nextAction);
         } else {
-            this.add.text(width / 2, height * 0.17, 'ALLA NIVÅER KLARADE!', { fontSize: '64px', fill: '#0f0' }).setOrigin(0.5).setScrollFactor(0);
-            this.add.text(width / 2, height * 0.83, 'Tryck för att börja om', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5).setScrollFactor(0);
+            if (this.padBase) this.padBase.setVisible(false);
+            if (this.padKnob) this.padKnob.setVisible(false);
+
+            const winImage = this.add.image(width / 2, height / 2, 'win')
+                .setDisplaySize(width, height)
+                .setScrollFactor(0)
+                .setAlpha(0)
+                .setDepth(1000);
+
+            const winText = this.add.text(width / 2, height * 0.17, 'ALLA NIVÅER KLARADE!', { fontSize: '64px', fill: '#0f0' })
+                .setOrigin(0.5)
+                .setScrollFactor(0)
+                .setAlpha(0)
+                .setDepth(1001);
+
+            const restartText = this.add.text(width / 2, height * 0.83, 'Tryck för att börja om', { fontSize: '32px', fill: '#fff' })
+                .setOrigin(0.5)
+                .setScrollFactor(0)
+                .setAlpha(0)
+                .setDepth(1001);
+
+            // Fade in win screen
+            this.tweens.add({
+                targets: [winImage, winText, restartText],
+                alpha: 1,
+                duration: 2500,
+                ease: 'Linear'
+            });
 
             const restartAction = () => {
                 this.scene.start('GameScene', { level: 1 });
