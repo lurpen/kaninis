@@ -1,6 +1,10 @@
 {
     "width": 2400,
     "height": 600,
+    "playerSpawn": {
+        "x": 300,
+        "y": 300
+    },
     "platforms": [
         {
             "x": 400,

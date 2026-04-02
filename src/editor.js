@@ -60,7 +60,8 @@ let levelData = {
     carrots: [],
     eggs: [],
     mushrooms: [],
-    exit: null
+    exit: null,
+    playerSpawn: null
 };
 
 // Groups
@@ -69,6 +70,8 @@ let carrots;
 let eggs;
 let mushrooms;
 let exitObj;
+let spawnObj;
+let idleFrame;
 let cursors;
 
 function preload() {
@@ -79,6 +82,7 @@ function preload() {
     this.load.image('egg', 'assets/egg.png');
     this.load.image('mushroom', 'assets/mushroom.png');
     this.load.image('exit', 'assets/exit.png');
+    this.load.atlas('kaninis', 'assets/walking-right.png', 'assets/walking-right_phaser_atlas.json');
 
     let graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
@@ -95,6 +99,9 @@ function preload() {
 function create() {
     this.physics.world.setBounds(0, 0, levelData.width, levelData.height);
     this.cameras.main.setBounds(0, 0, levelData.width, levelData.height);
+
+    const frameNames = this.textures.get('kaninis').getFrameNames().sort();
+    idleFrame = frameNames[0];
 
     platforms = this.physics.add.group();
     cursors = this.input.keyboard.createCursorKeys();
@@ -147,9 +154,9 @@ function selectObject(obj) {
     selectedObject.setTint(0xffff00);
 
     document.getElementById('delete-btn').style.display = 'block';
-    if (selectedObject.data.type === 'platform') {
+    if (selectedObject.customData.type === 'platform') {
         document.getElementById('platform-scale-label').style.display = 'block';
-        document.getElementById('platform-scale-x').value = selectedObject.data.scaleX;
+        document.getElementById('platform-scale-x').value = selectedObject.customData.scaleX;
     }
 }
 
@@ -176,7 +183,7 @@ function addObject(scene, x, y, type) {
         obj = platforms.create(x, grassY, textureKey).setInteractive();
         obj.setSize(width, height);
         obj.setOffset(0, 17);
-        obj.data = { type: type, scaleX: scaleX, scaleY: scaleY };
+        obj.customData = { type: type, scaleX: scaleX, scaleY: scaleY };
     } else if (type === 'carrot') {
         obj = carrots.create(x, y, 'carrot').setInteractive();
         obj.setScale(0.3);
@@ -194,13 +201,19 @@ function addObject(scene, x, y, type) {
         exitObj = scene.physics.add.staticSprite(x, y, 'exit').setInteractive();
         exitObj.setScale(0.25).refreshBody();
         obj = exitObj;
+    } else if (type === 'start') {
+        if (spawnObj) spawnObj.destroy();
+        spawnObj = scene.physics.add.sprite(x, y, 'kaninis', idleFrame).setInteractive();
+        spawnObj.setScale(0.1);
+        spawnObj.setAlpha(0.6); // Semi-transparent for editor
+        obj = spawnObj;
     }
 
     if (obj) {
-        if (!obj.data) {
-            obj.data = { type: type };
+        if (!obj.customData) {
+            obj.customData = { type: type };
         } else {
-            obj.data.type = type;
+            obj.customData.type = type;
         }
         selectObject(obj);
     }
@@ -214,6 +227,10 @@ function clearLevel() {
     if (exitObj) {
         exitObj.destroy();
         exitObj = null;
+    }
+    if (spawnObj) {
+        spawnObj.destroy();
+        spawnObj = null;
     }
 }
 
@@ -234,7 +251,7 @@ function loadLevelData(scene, data) {
             const obj = platforms.create(p.x, grassY, textureKey).setInteractive();
             obj.setSize(width, height);
             obj.setOffset(0, 17);
-            obj.data = { type: 'platform', scaleX: p.scaleX, scaleY: p.scaleY };
+            obj.customData = { type: 'platform', scaleX: p.scaleX, scaleY: p.scaleY };
         });
     }
 
@@ -243,7 +260,7 @@ function loadLevelData(scene, data) {
             const obj = carrots.create(c.x, c.y || 0, 'carrot').setInteractive();
             obj.setScale(0.3);
             if (obj.body) obj.body.updateFromGameObject();
-            obj.data = { type: 'carrot' };
+            obj.customData = { type: 'carrot' };
         });
     }
 
@@ -252,7 +269,7 @@ function loadLevelData(scene, data) {
             const obj = eggs.create(e.x, e.y, 'egg').setInteractive();
             obj.setScale(0.3);
             if (obj.body) obj.body.updateFromGameObject();
-            obj.data = { type: 'egg' };
+            obj.customData = { type: 'egg' };
         });
     }
 
@@ -261,14 +278,21 @@ function loadLevelData(scene, data) {
             const obj = mushrooms.create(m.x, m.y, 'mushroom').setInteractive();
             obj.setScale(0.25);
             if (obj.body) obj.body.updateFromGameObject();
-            obj.data = { type: 'mushroom' };
+            obj.customData = { type: 'mushroom' };
         });
     }
 
     if (data.exit) {
         exitObj = scene.physics.add.staticSprite(data.exit.x, data.exit.y, 'exit').setInteractive();
         exitObj.setScale(0.25).refreshBody();
-        exitObj.data = { type: 'exit' };
+        exitObj.customData = { type: 'exit' };
+    }
+
+    if (data.playerSpawn) {
+        spawnObj = scene.physics.add.sprite(data.playerSpawn.x, data.playerSpawn.y, 'kaninis', idleFrame).setInteractive();
+        spawnObj.setScale(0.1);
+        spawnObj.setAlpha(0.6);
+        spawnObj.customData = { type: 'start' };
     }
 }
 
@@ -284,9 +308,9 @@ function saveLevelData() {
     };
 
     platforms.children.iterate(p => {
-        const height = 32 * p.data.scaleY;
+        const height = 32 * p.customData.scaleY;
         const collisionY = p.y - 38.5 + 17 + height / 2;
-        data.platforms.push({ x: Math.round(p.x), y: Math.round(collisionY), scaleX: p.data.scaleX, scaleY: p.data.scaleY });
+        data.platforms.push({ x: Math.round(p.x), y: Math.round(collisionY), scaleX: p.customData.scaleX, scaleY: p.customData.scaleY });
     });
 
     carrots.children.iterate(c => {
@@ -303,6 +327,10 @@ function saveLevelData() {
 
     if (exitObj) {
         data.exit = { x: Math.round(exitObj.x), y: Math.round(exitObj.y) };
+    }
+
+    if (spawnObj) {
+        data.playerSpawn = { x: Math.round(spawnObj.x), y: Math.round(spawnObj.y) };
     }
 
     const blob = new Blob([JSON.stringify(data, null, 4)], { type: 'application/json' });
@@ -355,14 +383,14 @@ function setupUI(scene) {
     });
 
     document.getElementById('platform-scale-x').addEventListener('input', (e) => {
-        if (selectedObject && selectedObject.data.type === 'platform') {
+        if (selectedObject && selectedObject.customData.type === 'platform') {
             const scaleX = parseFloat(e.target.value);
-            const scaleY = selectedObject.data.scaleY;
+            const scaleY = selectedObject.customData.scaleY;
             const width = 32 * scaleX;
             const height = 32 * scaleY;
             const textureKey = getPlatformTexture(scene, width);
             selectedObject.setTexture(textureKey);
-            selectedObject.data.scaleX = scaleX;
+            selectedObject.customData.scaleX = scaleX;
             selectedObject.setSize(width, height);
             selectedObject.setOffset(0, 17);
             if (selectedObject.body) {
@@ -373,15 +401,18 @@ function setupUI(scene) {
 
     document.getElementById('delete-btn').addEventListener('click', () => {
         if (selectedObject) {
-            if (selectedObject.data.type === 'exit') {
+            if (selectedObject.customData.type === 'exit') {
                 exitObj = null;
+            }
+            if (selectedObject.customData.type === 'start') {
+                spawnObj = null;
             }
             selectedObject.destroy();
             deselectObject();
         }
     });
 
-    const tools = ['select', 'platform', 'carrot', 'egg', 'mushroom', 'exit'];
+    const tools = ['select', 'platform', 'carrot', 'egg', 'mushroom', 'exit', 'start'];
     tools.forEach(tool => {
         document.getElementById(`tool-${tool}`).addEventListener('click', () => {
             currentTool = tool;
