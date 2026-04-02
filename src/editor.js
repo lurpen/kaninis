@@ -121,7 +121,8 @@ function create() {
         const worldPoint = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
 
         if (currentTool === 'select') {
-            const hit = this.physics.overlapRect(worldPoint.x - 1, worldPoint.y - 1, 2, 2);
+            // Check for both dynamic and static bodies (the exit is static)
+            const hit = this.physics.overlapRect(worldPoint.x - 1, worldPoint.y - 1, 2, 2, true, true);
             if (hit.length > 0) {
                 selectObject(hit[0].gameObject);
             } else {
@@ -199,7 +200,11 @@ function addObject(scene, x, y, type) {
     }
 
     if (obj) {
-        obj.data = { type: type };
+        if (!obj.data) {
+            obj.data = { type: type };
+        } else {
+            obj.data.type = type;
+        }
         selectObject(obj);
     }
 }
