@@ -293,11 +293,14 @@ class GameScene extends BaseScene {
         });
 
         // The player and its settings
+        const spawnX = (data.playerSpawn && data.playerSpawn.x !== undefined) ? data.playerSpawn.x : 300;
+        const spawnY = (data.playerSpawn && data.playerSpawn.y !== undefined) ? data.playerSpawn.y : 450;
+
         // Scale 0.1 because original frames are ~300x360 and original rabbit was 32x32.
-        this.player = this.physics.add.sprite(300, 450, 'kaninis', this.idleFrame);
+        this.player = this.physics.add.sprite(spawnX, spawnY, 'kaninis', this.idleFrame);
         this.player.setScale(0.1);
         this.player.setSize(240, 320);
-        this.player.setOffset(33, 40); // Centering the hitbox
+        this.player.setOffset(33, 20);
         this.player.setBounce(0.1);
         this.player.setCollideWorldBounds(true);
 
@@ -543,12 +546,6 @@ class GameScene extends BaseScene {
                 .setAlpha(0)
                 .setDepth(1000);
 
-            const winText = this.add.text(width / 2, height * 0.17, 'ALLA NIVÅER KLARADE!', { fontSize: '64px', fill: '#0f0' })
-                .setOrigin(0.5)
-                .setScrollFactor(0)
-                .setAlpha(0)
-                .setDepth(1001);
-
             const restartText = this.add.text(width / 2, height * 0.83, 'Tryck för att börja om', { fontSize: '32px', fill: '#fff' })
                 .setOrigin(0.5)
                 .setScrollFactor(0)
@@ -557,7 +554,7 @@ class GameScene extends BaseScene {
 
             // Fade in win screen
             this.tweens.add({
-                targets: [winImage, winText, restartText],
+                targets: [winImage, restartText],
                 alpha: 1,
                 duration: 2500,
                 ease: 'Linear'
