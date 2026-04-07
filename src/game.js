@@ -134,13 +134,13 @@ class TitleScene extends BaseScene {
                 ease: 'Power1'
             });
 
-            // Re-enable the "start game" click listener after a short delay
+            // Re-enable the click listener to go to menu after a short delay
             this.time.delayedCall(200, () => {
                 this.input.once('pointerdown', () => {
-                    this.scene.start('GameScene', { level: 1 });
+                    this.scene.start('MenuScene');
                 });
                 this.input.keyboard.once('keydown', () => {
-                    this.scene.start('GameScene', { level: 1 });
+                    this.scene.start('MenuScene');
                 });
             });
         };
@@ -181,6 +181,56 @@ class TitleScene extends BaseScene {
                 });
             }
         });
+    }
+}
+
+class MenuScene extends BaseScene {
+    constructor() {
+        super('MenuScene');
+    }
+
+    create() {
+        const width = this.scale.width;
+        const height = this.scale.height;
+
+        this.ensureThemePlaying();
+
+        // Background
+        this.add.image(width / 2, height / 2, 'title').setDisplaySize(width, height);
+
+        // Menu title
+        this.add.text(width / 2, height * 0.3, 'HUVUDMENY', {
+            fontSize: '64px',
+            fill: '#fff',
+            fontStyle: 'bold',
+            stroke: '#000',
+            strokeThickness: 6
+        }).setOrigin(0.5);
+
+        // Start Button
+        const startButton = this.add.text(width / 2, height * 0.6, 'STARTA SPELET', {
+            fontSize: '48px',
+            fill: '#fff',
+            backgroundColor: '#228b22',
+            padding: { x: 20, y: 10 },
+            stroke: '#fff',
+            strokeThickness: 2
+        })
+            .setOrigin(0.5)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                this.scene.start('GameScene', { level: 1 });
+            })
+            .on('pointerover', () => startButton.setStyle({ fill: '#ffcc00', backgroundColor: '#1a6b1a' }))
+            .on('pointerout', () => startButton.setStyle({ fill: '#fff', backgroundColor: '#228b22' }));
+
+        // Footer for future features
+        this.add.text(width / 2, height * 0.85, '(Fler alternativ kommer snart)', {
+            fontSize: '24px',
+            fill: '#fff',
+            stroke: '#000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
     }
 }
 
@@ -616,7 +666,7 @@ const config = {
             debug: false
         }
     },
-    scene: [PreloadScene, TitleScene, GameScene]
+    scene: [PreloadScene, TitleScene, MenuScene, GameScene]
 };
 
 const game = new Phaser.Game(config);
