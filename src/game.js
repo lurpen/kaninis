@@ -198,14 +198,6 @@ class MenuScene extends BaseScene {
         // Background
         this.add.image(width / 2, height / 2, 'title').setDisplaySize(width, height);
 
-        // Menu title
-        this.add.text(width / 2, height * 0.3, 'HUVUDMENY', {
-            fontSize: '64px',
-            fill: '#fff',
-            fontStyle: 'bold',
-            stroke: '#000',
-            strokeThickness: 6
-        }).setOrigin(0.5);
 
         // Start Button
         const startButton = this.add.text(width / 2, height * 0.6, 'STARTA SPELET', {
