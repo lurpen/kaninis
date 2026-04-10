@@ -1,0 +1,7 @@
+CREATE TABLE leaderboard (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    player_name VARCHAR(50) NOT NULL,
+    score INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_score (score DESC, created_at ASC)
+);
