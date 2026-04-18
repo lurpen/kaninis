@@ -6,6 +6,7 @@ class PreloadScene extends Phaser.Scene {
     preload() {
         this.load.json('level1', 'levels/level1.json');
         this.load.audio('theme', 'assets/kaninis-theme.mp3');
+        this.load.audio('winner', 'assets/winner.mp3');
         this.load.audio('death', 'assets/death.mp3');
         this.load.audio('catch-egg', 'assets/catch-egg.mp3');
         this.load.audio('eat-carrot', 'assets/eat-carrot.mp3');
@@ -70,6 +71,13 @@ class BaseScene extends Phaser.Scene {
         if (!theme) {
             theme = this.sound.add('theme', { loop: true });
         }
+
+        // Make sure victory music is stopped when normal theme should play
+        let winner = this.sound.get('winner');
+        if (winner && winner.isPlaying) {
+            winner.stop();
+        }
+
         if (!theme.isPlaying) {
             theme.play();
         }
@@ -552,9 +560,13 @@ class GameScene extends BaseScene {
     }
 
     async reachExit(player, exit) {
+        if (this.gameOver) return;
         this.physics.pause();
         player.setTint(0x00ff00);
         this.gameOver = true;
+
+        const theme = this.sound.get('theme');
+        if (theme) theme.stop();
 
         const width = this.scale.width;
         const height = this.scale.height;
@@ -601,6 +613,8 @@ class GameScene extends BaseScene {
                 duration: 2500,
                 ease: 'Linear'
             });
+
+            this.sound.play('winner');
 
             const restartAction = () => {
                 this.scene.start('GameScene', { level: 1 });
